@@ -21,16 +21,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20' # Wrangler requires Node.js
 
-      # Step 3: Install the latest version of Wrangler
-      - name: Install Wrangler
-        run: npm install -g wrangler
-
-      # Step 4: Deploy the worker
-      # The API token is not needed because we are using the GitHub App.
+      # Step 3: Deploy the worker using the official Wrangler action
+      # This action automatically handles authentication via the GitHub App.
       - name: Deploy
-        run: wrangler deploy
+        uses: cloudflare/wrangler-action@v3
         env:
-          # Only the Account ID is needed here.
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
