@@ -2,7 +2,6 @@
 
 name: Deploy to Cloudflare Workers
 
-# This workflow runs on any push to the 'main' branch
 on:
   push:
     branches:
@@ -17,10 +16,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Step 2: Deploy the worker using the official Wrangler action
-      # This action automatically handles authentication via the GitHub App.
+      # Step 2: Deploy using the official Wrangler action
+      # This action is the recommended way to deploy from GitHub Actions.
+      # It correctly handles authentication via the installed GitHub App.
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
-          # Use 'with' to pass inputs directly to the action
+          # This is the crucial part. We pass the Account ID directly to the
+          # action as an input. This tells the action which Cloudflare
+          # account to deploy to, allowing it to use the app's permissions.
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          
+          # This tells the action what command to run.
+          # It's equivalent to running 'wrangler deploy' in your terminal.
+          command: deploy
