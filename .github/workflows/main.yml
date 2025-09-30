@@ -1,4 +1,4 @@
-# .github/workflows/deploy.yml
+# .github/workflows/main.yml
 
 name: Deploy to Cloudflare Workers
 
@@ -27,10 +27,10 @@ jobs:
       - name: Install Wrangler
         run: npm install -g wrangler
 
-      # Step 4: Deploy the worker using the secrets for authentication
+      # Step 4: Deploy the worker
+      # The API token is not needed because we are using the GitHub App.
       - name: Deploy
         run: wrangler deploy
         env:
-          # Pass the secrets to the deployment command
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          # Only the Account ID is needed here.
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
