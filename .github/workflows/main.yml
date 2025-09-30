@@ -1,0 +1,36 @@
+# .github/workflows/deploy.yml
+
+name: Deploy to Cloudflare Workers
+
+# This workflow runs on any push to the 'main' branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy Worker
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Step 2: Use Node.js, required by Wrangler
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Step 3: Install the latest version of Wrangler
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
+      # Step 4: Deploy the worker using the secrets for authentication
+      - name: Deploy
+        run: wrangler deploy
+        env:
+          # Pass the secrets to the deployment command
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
