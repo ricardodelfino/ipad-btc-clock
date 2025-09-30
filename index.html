@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>iPad BTC Clock</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .price-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .crypto-price {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 15px 30px;
+            min-width: 300px;
+        }
+
+        .btc-price {
+            font-size: 48px;
+            font-weight: bold;
+            color: #f7931a;
+            text-align: center;
+        }
+
+        .usdt-price {
+            font-size: 36px;
+            font-weight: bold;
+            color: #26a17b;
+            text-align: center;
+        }
+
+        .clock-container {
+            background: #000;
+            border: 3px solid #333;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .clock {
+            font-size: 72px;
+            font-weight: bold;
+            color: #00ff00;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 4px;
+        }
+
+        .loading {
+            color: #666;
+            font-size: 24px;
+        }
+
+        .error {
+            color: #ff4444;
+            font-size: 20px;
+        }
+
+        .label {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        @media (orientation: landscape) {
+            .container {
+                flex-direction: row;
+                gap: 60px;
+            }
+            
+            .price-display {
+                margin-bottom: 0;
+                gap: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="price-display">
+            <div class="crypto-price">
+                <div>
+                    <div class="label">BTC/USD</div>
+                    <div id="btc-price" class="btc-price loading">Loading...</div>
+                </div>
+            </div>
+            
+            <div class="crypto-price">
+                <div>
+                    <div class="label">BRL/USDT</div>
+                    <div id="usdt-price" class="usdt-price loading">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="clock-container">
+            <div id="clock" class="clock">--:--:--</div>
+        </div>
+    </div>
+
+    <script>
+        // Compatibility with iOS 9.3.5 - use var instead of let/const
+        var updateInterval = 60000; // 1 minute interval
+
+        // Format numbers with thousands separators and commas for decimals
+        function formatNumber(num, decimals) {
+            if (decimals === undefined) decimals = 2;
+            var parts = num.toFixed(decimals).toString().split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return parts.join(',');
+        }
+
+        function updateClock() {
+            var now = new Date();
+            var hours = now.getHours().toString().padStart(2, '0');
+            var minutes = now.getMinutes().toString().padStart(2, '0');
+            var seconds = now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('clock').textContent = hours + ':' + minutes + ':' + seconds;
+        }
+
+        function makeRequest(url, callback) {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        try {
+                            var data = JSON.parse(xhr.responseText);
+                            callback(null, data);
+                        } catch(e) {
+                            callback('Error parsing data', null);
+                        }
+                    } else {
+                        callback('Request error', null);
+                    }
+                }
+            };
+            xhr.open('GET', url, true);
+            xhr.send();
+        }
+
+        function fetchBTCPrice() {
+            makeRequest('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT', function(err, data) {
+                var el = document.getElementById('btc-price');
+                if(err) {
+                    el.textContent = 'Error';
+                    el.className = 'btc-price error';
+                } else {
+                    var price = parseFloat(data.price);
+                    el.textContent = '$' + formatNumber(price, 2);
+                    el.className = 'btc-price';
+                }
+            });
+        }
+
+        function fetchUSDTPrice() {
+            makeRequest('https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL', function(err, data) {
+                var el = document.getElementById('usdt-price');
+                if(err) {
+                    el.textContent = 'Error';
+                    el.className = 'usdt-price error';
+                } else {
+                    var price = parseFloat(data.price);
+                    el.textContent = 'R$' + formatNumber(price, 2);
+                    el.className = 'usdt-price';
+                }
+            });
+        }
+
+        function updatePrices() {
+            fetchBTCPrice();
+            fetchUSDTPrice();
+        }
+
+        function init() {
+            updateClock();
+            updatePrices();
+            setInterval(updateClock, 1000);
+            setInterval(updatePrices, updateInterval);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
