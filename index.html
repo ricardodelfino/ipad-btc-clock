@@ -1,129 +1,200 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-  <title>iPad BTC Clock</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BTC Painel</title>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="theme-color" content="#000000">
+  <!-- Fontes: Poppins para o placar, Poppins (mantida caso queira reverter/usar em outro lugar) e sans-serif como fallback -->
+   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
   <style>
     html, body {
-      margin: 0; padding: 0; height: 100%; width: 100%;
-      background: black;
-      color: #00FF00;
-      font-family: 'Courier New', monospace;
-      overflow: hidden;
-      -webkit-user-select: none; user-select: none;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .container {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-around;
-      align-items: center;
-      height: 100%;
-      width: 100%;
-      padding: 0 20px;
-      box-sizing: border-box;
-    }
-    .price-block {
+      margin: 0;
+      padding: 0;
+      background-color: #000; /* Fundo geral preto do painel */
       color: white;
+      font-family: sans-serif; /* Fonte padrão para outras células */
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .cell {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 3.55em; /* Aumentado em 15% para USD/BRL, BTC/BRL, Bloco */
+      font-weight: bold;
+      border: 1px solid #222;
       text-align: center;
-      font-weight: bold;
+      padding: 10px;
+      box-sizing: border-box;
+      line-height: 1.1;
     }
-    #btc-price {
-      font-size: 90px;
-      color: #f7931a;
+    /* Cores para as outras células */
+    .green { color: #1DB954; }
+    .light-orange { color: #ffa500; }
+    .blue { color: #1E90FF; }
+
+    /* Estilos para BTC-USD (baseado no Placar Antigo) */
+    #btc-usd {
+      background-color: #141616; /* Fundo do container do placar */
+      padding: 0 3px;    /* Padding do container do placar */
+      border-radius: 0;   /* Borda do container do placar */
+      display: flex;         /* Para alinhar os dígitos e pontos */
+      gap: 1px;             /* Espaço entre os dígitos/pontos */
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4); /* Sombra do container */
+      font-family: 'Poppins', sans-serif; /* Fonte para os dígitos */
+      align-items: center;   /* Alinha verticalmente os itens */
+      justify-content: center; /* Centraliza o conteúdo do placar */
+      /* Sobrescreve o font-size de .cell, pois os dígitos têm tamanho próprio */
+      font-size: initial; /* Reseta o font-size herdado de .cell */
+      border: none; /* Remove a borda padrão de .cell */
     }
-    #usdt-price {
-      font-size: 54px;
-      color: #26a17b;
+    .digit-box:not(:nth-child(3)):not(:nth-child(7)) {margin-right:6.5px!important;}
+
+    .digit-box { /* Renomeado de .digit para evitar conflito com possível tag <digit> */
+      background-color: #0B0A0F; /* Preto fosco */
+      color: white;
+      font-weight: 500;
+      font-size: 51px; /* Tamanho da fonte dos dígitos */
+      width: 45px;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 4px;
+      position: relative;
+      box-shadow:
+        0 0 0 1px #9d9c9c,   /* Borda branca interna */
+        0 0 0 2px #ad6218,   /* Borda laranja externa */
+        inset 0 4px 6px rgba(0,0,0,0.8),  /* Sombra superior interna */
+        inset 0 -4px 6px rgba(255,255,255,0.15); /* Brilho inferior interno */
     }
-    #clock {
-      font-family: 'Courier New', monospace;
-      font-size: 90px;
-      color: #00ff00;
-      font-weight: bold;
-      user-select: none;
-      -webkit-user-select: none;
+
+    .dot-separator-placar { /* Renomeado para evitar conflito com outros .dot */
+      color: #e0e0e0; /* Cor do ponto igual ao fundo do dígito */
+      font-size: 30px; /* Mesmo tamanho dos dígitos */
+      margin: 0 2px;   /* Espaçamento do ponto separador */
+      font-weight: 300;
+      line-height: 90px; /* Para alinhar verticalmente com os digit-box */
+      align-self: center;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="price-block" id="btc-price">...</div>
-    <div class="price-block" id="usdt-price">...</div>
-    <div id="clock">--:--</div>
-  </div>
+  <div class="cell" id="btc-usd">Carregando...</div>
+  <div class="cell green" id="usd-brl">Carregando...</div>
+  <div class="cell light-orange" id="btc-brl">Carregando...</div>
 
   <script>
-    var workerBase = 'https://btc-clock.solver-7a8.workers.dev/';
-
-    function formatNumber(value, decimals, decimalSep, thousandSep, noDecimalsIfZero) {
-      decimals = decimals === undefined ? 2 : decimals;
-      decimalSep = decimalSep || ',';
-      thousandSep = thousandSep || '.';
-      noDecimalsIfZero = noDecimalsIfZero || false;
-
-      var parts;
-      if (noDecimalsIfZero && Number.isInteger(value)) {
-        parts = [value.toString()];
-      } else {
-        parts = value.toFixed(decimals).toString().split('.');
-      }
-
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousandSep);
-
-      return parts.length > 1 ? parts[0] + decimalSep + parts[1] : parts[0];
+    // Função para buscar os dados do Cloudflare Worker.
+    // Escrita com .then() para máxima compatibilidade com navegadores antigos.
+    function fetchData() {
+      return fetch('https://btc-clock.solver-7a8.workers.dev/')
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Erro ao contatar o Worker: ' + response.statusText);
+          }
+          return response.json();
+        })
+        .catch(function(error) {
+          console.error('Erro na busca de dados:', error);
+          // Retorna um objeto de erro para que a interface possa ser atualizada
+          return {
+            btcUsd: null,
+            usdBrl: null
+          };
+        });
     }
 
-    function updateClock() {
-      var now = new Date();
-      var h = now.getHours().toString().padStart(2,'0');
-      var m = now.getMinutes().toString().padStart(2,'0');
+    function updateDOM(data) {
+      const btcUsdEl = document.getElementById('btc-usd');
+      if (data.btcUsd !== null) {
+        btcUsdEl.innerHTML = ''; // Limpa conteúdo anterior
 
-      document.getElementById('clock').textContent = h + ':' + m;
-    }
+        const integerValue = Math.floor(data.btcUsd);
+        // Formata com separador de milhar (ponto para pt-BR) e sem casas decimais
+        const formattedNumberStr = integerValue.toLocaleString('pt-BR', {maximumFractionDigits: 0});
 
-    function fetchPrice(symbol, elementId, decimals, showDecimalIfZero) {
-      var url = workerBase + '?symbol=' + symbol;
-
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', url, true);
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-          var el = document.getElementById(elementId);
-          if (xhr.status === 200) {
-            try {
-              var data = JSON.parse(xhr.responseText);
-              var price = parseFloat(data.price);
-              el.textContent = formatNumber(price, decimals, ',', '.', showDecimalIfZero);
-            } catch {
-              el.textContent = 'Error';
-            }
-          } else {
-            el.textContent = 'Error';
+        for (const char of formattedNumberStr) {
+          if (char === '.') { // O separador de milhar do pt-BR é '.'
+            const dotEl = document.createElement('div');
+            dotEl.className = 'dot-separator-placar';
+            dotEl.textContent = '.';
+            btcUsdEl.appendChild(dotEl);
+          } else if (/\d/.test(char)) { // Se for um dígito
+            const digitBox = document.createElement('div');
+            digitBox.className = 'digit-box';
+            digitBox.textContent = char;
+            btcUsdEl.appendChild(digitBox);
           }
         }
-      };
-      xhr.send();
+      } else {
+        // Mensagem de erro estilizada para o contexto do placar
+        btcUsdEl.innerHTML = '<span style="font-size: 24px; color: #1E1E1E; font-family: Poppins, sans-serif;">Erro</span>';
+      }
+
+      const usdBrlEl = document.getElementById('usd-brl');
+      if (data.usdBrl !== null) {
+        // Formata para 3 casas decimais
+        const formattedUsdBrl = data.usdBrl.toLocaleString('pt-BR', {
+          minimumFractionDigits: 3,
+          maximumFractionDigits: 3
+        });
+
+        // Encontra o separador decimal (vírgula para pt-BR)
+        const decimalSeparatorIndex = formattedUsdBrl.indexOf(',');
+
+        if (decimalSeparatorIndex !== -1 && formattedUsdBrl.length > decimalSeparatorIndex + 2) {
+          const integerPart = formattedUsdBrl.substring(0, decimalSeparatorIndex);
+          const decimalPart = formattedUsdBrl.substring(decimalSeparatorIndex + 1);
+          const firstTwoDecimals = decimalPart.substring(0, 2);
+          const thirdDecimal = decimalPart.substring(2, 3);
+
+          usdBrlEl.innerHTML = `${integerPart},${firstTwoDecimals}<span style="font-size: 100%;display: contents;">${thirdDecimal}</span>`;
+        } else { // Fallback para casos inesperados ou menos de 3 casas
+          usdBrlEl.innerText = formattedUsdBrl;
+        }
+      } else {
+        usdBrlEl.innerText = 'Erro';
+      }
+
+      const btcBrlEl = document.getElementById('btc-brl');
+      if (data.btcUsd !== null && data.usdBrl !== null) {
+        const btcBrl = data.btcUsd * data.usdBrl;
+        btcBrlEl.innerText = btcBrl.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+      } else {
+        btcBrlEl.innerText = 'Erro';
+      }
+
     }
 
-    function updatePrices() {
-      fetchPrice('BTCUSDT', 'btc-price', 0, false); // No decimals for BTC/USD, no '$' symbol
-      fetchPrice('USDTBRL', 'usdt-price', 2, true); // 2 decimals for USDT/BRL, no 'BRL/USDT' text
+    // Função para atualizar a tela, também usando .then()
+    function atualizar() {
+      const btcUsdEl = document.getElementById('btc-usd');
+      // Mostra "Carregando..." de forma simples antes dos dígitos serem criados
+      if (!btcUsdEl.querySelector('.digit-box') && !btcUsdEl.textContent.includes('Erro')) {
+        btcUsdEl.innerHTML = '<span style="font-size: 24px; color: #1E1E1E; font-family: Poppins, sans-serif;">Carregando...</span>';
+      }
+
+      document.getElementById('usd-brl').innerText = 'Carregando...';
+      document.getElementById('btc-brl').innerText = 'Carregando...';
+
+      fetchData().then(function(data) {
+        updateDOM(data);
+      });
     }
 
-    function init() {
-      updateClock();
-      updatePrices();
-      setInterval(updateClock, 60000);  // Update clock every minute
-      setInterval(updatePrices, 60000); // Update prices every minute
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
-    } else {
-      init();
-    }
+    atualizar();
+    setInterval(atualizar, 60000);
   </script>
 </body>
 </html>
