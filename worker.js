@@ -108,6 +108,41 @@ export default {
           <div class="cell" id="btc-usdc-cell">${btcUsdcPlacard}</div>
           <div class="cell" id="usdc-brl-cell">${usdcBrlPlacard}</div>
           <div class="cell" id="btc-brl-cell">${btcBrlPlacard}</div>
+
+          <script>
+            // This function uses XMLHttpRequest for maximum compatibility with older browsers like on the iPad 2.
+            function updateContent() {
+              var xhr = new XMLHttpRequest();
+              xhr.open('GET', window.location.href, true);
+              xhr.onreadystatechange = function () {
+                // Check if the request is complete and was successful.
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                  try {
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(xhr.responseText, 'text/html');
+                    
+                    // Find the new content in the fetched HTML.
+                    var newBtcUsdc = doc.getElementById('btc-usdc-cell').innerHTML;
+                    var newUsdcBrl = doc.getElementById('usdc-brl-cell').innerHTML;
+                    var newBtcBrl = doc.getElementById('btc-brl-cell').innerHTML;
+
+                    // Replace the old content with the new content.
+                    document.getElementById('btc-usdc-cell').innerHTML = newBtcUsdc;
+                    document.getElementById('usdc-brl-cell').innerHTML = newUsdcBrl;
+                    document.getElementById('btc-brl-cell').innerHTML = newBtcBrl;
+                  } catch (e) {
+                    console.error('Error parsing or updating content:', e);
+                  }
+                } else if (xhr.readyState === 4) { // Request finished but with an error
+                  console.error('Failed to update content. Status:', xhr.status);
+                }
+              };
+              xhr.send();
+            }
+
+            // Update every CACHE_TTL_SECONDS
+            setInterval(updateContent, ${CACHE_TTL_SECONDS * 1000});
+          </script>
         </body>
         </html>
       `;
