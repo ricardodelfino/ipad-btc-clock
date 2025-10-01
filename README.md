@@ -1,55 +1,50 @@
 # iPad BTC Clock
 
-A simple digital clock and cryptocurrency price display optimized for old iPads running iOS 9.3.5.
+[![Cloudflare SSR](https://img.shields.io/badge/SSR-Cloudflare%20Workers-F38020?logo=cloudflare)](https://developers.cloudflare.com/workers/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Compatibility
+A sleek, server-rendered digital clock and cryptocurrency price display, optimized to bring new life to any device, especially older iPads running iOS 9.3.5.
 
-- Devices: iPad 2, iPad 3, and other older iPads
-- OS: iOS 9.3.5 or later
-- Browser: Safari included in iOS 9.3.5
+**🔗 Live Link: https://btc-clock.21m.workers.dev/**
+
+
+![iPad BTC Clock](assets/ipad-btc-clock.jpg)
+
+## The Approach: How It Works
+
+This project uses a modern, server-side rendering (SSR) architecture powered by **Cloudflare Workers** to ensure maximum compatibility and performance on any device.
+
+1.  **Server-Side Logic:** A Cloudflare Worker fetches live price data for `BTC/USDC` and `BTC/BRL` from the Coinbase public API.
+2.  **On-the-Fly Rendering:** The worker performs all calculations and generates the final, styled HTML page on the server.
+3.  **Ultra-Lightweight Delivery:** Your device receives a simple, pre-rendered HTML page. The browser's only job is to display it, requiring minimal processing power.
+
+This approach offloads all the heavy lifting from the device, making the panel fast and responsive even on very old hardware like an iPad 2.
 
 ## Features
 
-- Real-time digital clock showing local time
-- Live Bitcoin price (BTC/USD) from Binance, updated every minute
-- Live USDT to BRL exchange rate from Binance, updated every minute
-- Brazilian number formatting: thousands separator as dot (.) and decimal separator as comma (,)
-- Layout optimized for landscape mode with large readable fonts and distinctive colors
-- Developed using ES5 JavaScript and XMLHttpRequest for compatibility with old Safari
-- Responsive layout that works in portrait and landscape orientations
+-   **Live Prices:** Displays `BTC/USDC`, `USDC/BRL` (calculated), and `BTC/BRL`.
+-   **Server-Side Rendering:** Guarantees compatibility with virtually any web browser, new or old.
+-   **Efficient Caching:** The worker caches API results to prevent rate-limiting and ensure near-instant load times.
+-   **Automatic Refresh:** The page automatically updates every 60 seconds.
+-   **Digital Placard Design:** A clean, high-contrast layout inspired by the iconic Blockclock by Coinkite.
 
-## How to use
+## How to Use
 
-### Using GitHub Pages (Recommended)
+1.  Visit **https://btc-clock.21m.workers.dev/** on your tablet or any other device.
+2.  For the best experience on a tablet, rotate to landscape mode.
+3.  Tap the "Share" button in Safari and select "Add to Home Screen" for a full-screen, app-like experience.
 
-1. Visit `https://ricardodelfino.github.io/ipad-btc-clock` on your iPad
-2. Rotate your iPad to landscape mode
-3. Tap the Share button in Safari
-4. Select "Add to Home Screen" for quick access
+## Deployment
 
-### Using the local file
+This project is configured for **automatic deployment**. A direct integration between GitHub and Cloudflare means that any push to the `main` branch automatically triggers a new build and deploys the latest version of the worker.
 
-1. Download `index.html`
-2. Open the file in Safari on your iPad
-3. For best experience, use full screen mode
+## Design Inspiration
 
-## API Endpoints used
+This project draws its aesthetic firepower from the legendary [Blockclock](https://blockclock.com) and the iconic creations of **Coinkite** — hardcore builders who etched their mark into Bitcoin history.
 
-- Binance ticker price API:  
-  - BTC/USDT: `https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT`  
-  - USDT/BRL: `https://api.binance.com/api/v3/ticker/price?symbol=USDTBRL`
-
-## Repository Name Suggestion
-
-`ipad-btc-clock`
-
-## Application Name Suggestions
-
-- iPad BTC Clock
-- Crypto Desk Clock
-- Bitcoin Timer
-- Digital Crypto Clock
+-   Blockclock
 
 ---
 
-This project breathes new life into old iPads by turning them into a sleek cryptocurrency clock with live prices and local time display.
+This project breathes new life into old iPads by turning them into a sleek, efficient, and always-on cryptocurrency price panel.
