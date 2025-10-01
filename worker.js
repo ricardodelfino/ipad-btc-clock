@@ -119,16 +119,17 @@ export default {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
+        // Set a cache TTL for the internal cache on the response itself
+        'X-Internal-Cache-TTL': CACHE_TTL_SECONDS
       };
 
       response = new Response(html, { headers });
 
       if (allDataFetched) {
         console.log('All data fetched successfully. Caching response internally.');
-        // We create a new response for the internal cache that CAN be cached.
-        // The Cache API respects Cache-Control, so we need a new Response object.
-        let cacheableResponse = new Response(response.body, response);
-        cacheableResponse.headers.set('Cache-Control', `public, max-age=${CACHE_TTL_SECONDS}`);
+        // We must clone the response to be able to use it for the cache AND return it.
+        // The body of a response can only be read once.
+        let cacheableResponse = response.clone();
         await internalCache.put(request, cacheableResponse);
       } else {
         console.warn('One or more API calls failed. Response will not be cached.');
